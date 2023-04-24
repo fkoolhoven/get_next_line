@@ -5,99 +5,84 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: fkoolhov <fkoolhov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/14 13:21:12 by fkoolhov          #+#    #+#             */
-/*   Updated: 2022/11/22 18:55:19 by fkoolhov         ###   ########.fr       */
+/*   Created: 2021/12/09 10:16:28 by cyuzbas           #+#    #+#             */
+/*   Updated: 2023/04/24 19:08:52 by fkoolhov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*create_line(char *buffer, int strlen, int start)
+char	*update_buffer(char	*buffer)
 {
-	char	*line;
-	int		x;
+	int		i;
+	int		j;
+	char	*updated;
 
-	line = ft_calloc_bzero(strlen + 1, sizeof(char));
-	if (line == NULL)
+	i = 0;
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	if (!buffer[i])
+	{
+		free(buffer);
 		return (NULL);
-	x = 0;
-	while (strlen-- > 0)
-		line[x++] = buffer[start++];
-	return (line);
+	}
+	updated = (char *)ft_calloc(sizeof(char), (ft_strlen(buffer) - i + 1));
+	j = 0;
+	i++;
+	while (buffer[i] && updated)
+	{
+		updated[j] = buffer[i];
+		j++;
+		i++;
+	}
+	free (buffer);
+	return (updated);
 }
 
-char	*get_line_mine(char *buffer)
+char	*get_line(char *buffer)
 {
-	int			start;
-	int			strlen;
-	char		*line;
-	static int	i;
+	int		i;
+	char	*get_line;
 
-	start = i;
-	strlen = 0;
-	if (i == -1 || *buffer == '\0')
-	{
-		i = 0;
+	i = 0;
+	if (!buffer[i])
 		return (NULL);
-	}	
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	get_line = (char *)ft_calloc(sizeof(char), (i + 2));
+	if (!get_line)
+		return (NULL);
+	i = 0;
 	while (buffer[i] && buffer[i] != '\n')
 	{
-		strlen++;
+		get_line[i] = buffer[i];
 		i++;
 	}
 	if (buffer[i] == '\n')
-		strlen++;
-	if (buffer[i++] == '\0' && start != 0 && strlen == 0)
-		return (NULL);
-	if (buffer[i - 1] == '\0')
-		i = -1;
-	line = create_line(buffer, strlen, start);
-	return (line);
+		get_line[i] = '\n';
+	return (get_line);
 }
 
-char	*add_bytes(char *old_result, char *temp_buffer, int bytes_read)
+char	*ft_read(char *buffer, int fd)
 {
-	char	*new_result;
+	char	temp_buffer[BUFFER_SIZE + 1];
+	int		check_read;
 
-	if (bytes_read == -1)
+	check_read = 1;
+	while (check_read != 0 && !ft_strchr(buffer, '\n'))
 	{
-		get_line_mine("\0");
-		return (free_and_ret_null(old_result, NULL));
+		check_read = read(fd, temp_buffer, BUFFER_SIZE);
+		if (check_read < 0)
+		{
+			free(buffer);
+			return (NULL);
+		}
+		temp_buffer[check_read] = '\0';
+		buffer = ft_strjoin(buffer, temp_buffer);
+		if (buffer == NULL)
+			check_read = 0;
 	}
-	temp_buffer[bytes_read] = '\0';
-	new_result = ft_strjoin(old_result, temp_buffer);
-	if (new_result == NULL)
-		return (free_and_ret_null(old_result, new_result));
-	free (old_result);
-	return (new_result);
-}
-
-char	*read_line(int fd, char *result)
-{
-	char	*temp_buffer;
-	int		bytes_read;
-
-	if (!result)
-		result = ft_calloc_bzero(1, 1);
-	if (result == NULL)
-		return (NULL);
-	temp_buffer = ft_calloc_bzero(BUFFER_SIZE + 1, sizeof(char));
-	if (temp_buffer == NULL)
-		return (free_and_ret_null(result, NULL));
-	bytes_read = 1;
-	while (bytes_read > 0)
-	{
-		bytes_read = read(fd, temp_buffer, BUFFER_SIZE);
-		result = add_bytes(result, temp_buffer, bytes_read);
-		if (result == NULL)
-			return (free_and_ret_null(temp_buffer, NULL));
-		if (*ft_strchr(temp_buffer, '\n') == '\n')
-			break ;
-	}
-	if (*temp_buffer == '\0' && *result == '\0')
-		return (free_and_ret_null(temp_buffer, result));
-	free(temp_buffer);
-	return (result);
+	return (buffer);
 }
 
 char	*get_next_line(int fd)
@@ -107,56 +92,15 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	buffer = read_line(fd, buffer);
+	buffer = ft_read(buffer, fd);
 	if (buffer == NULL)
 		return (NULL);
-	line = get_line_mine(buffer);
+	line = get_line(buffer);
+	buffer = update_buffer(buffer);
 	if (line == NULL)
 	{
-		get_line_mine("\0");
 		free (buffer);
-		buffer = NULL;
 		return (NULL);
 	}
 	return (line);
 }
-
-// int	main(void)
-// {
-// 	char	*s;
-// 	int		fd;
-// 	int		i;
-
-// 	fd = open("testfile", O_RDONLY);
-// 	//fd = 1;
-// 	// s = get_next_line(fd);
-// 	// printf("line 1 = %s\n", s);
-// 	s = (char *)0x1;
-// 	i = 1;
-// 	while (s)
-// 	{
-// 		s = get_next_line(fd);
-// 		printf("line %i = %s", i, s);
-// 		i++;
-// 		free (s);
-// 	}
-// 	// s = get_next_line(fd);
-// 	// printf("line 3 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 4 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 5 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 6 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 7 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 8 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 9 = %s", s);
-// 	// s = get_next_line(fd);
-// 	// printf("line 10 = %s", s);
-// 	close(fd);
-// 	system("leaks -q a.out");
-// 	return (0);
-// }
