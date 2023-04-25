@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fkoolhov <fkoolhov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felicia <felicia@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/09 10:16:32 by cyuzbas           #+#    #+#             */
-/*   Updated: 2023/04/24 19:07:30 by fkoolhov         ###   ########.fr       */
+/*   Created: 2023/04/25 16:15:59 by felicia           #+#    #+#             */
+/*   Updated: 2023/04/25 16:16:37 by felicia          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,6 @@
 # define GET_NEXT_LINE_H
 # include <unistd.h>
 # include <stdlib.h>
-
-
-
-
-        #include <stdio.h>
 
 char	*get_next_line(int fd);
 char	*ft_read(char *container, int fd);
